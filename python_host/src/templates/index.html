@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_title }} - 内部面板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!--<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">-->
+    <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/notes.js') }}"></script>
+    <!-- 添加Chart.js库 -->
+    <!--<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>-->
+    <script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+    <!-- 环境监测功能JavaScript -->
+    <script src="{{ url_for('static', filename='js/environment.js') }}"></script>
+    <!-- 添加marked.js用于markdown解析 -->
+    <!--<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>-->
+    <script src="{{ url_for('static', filename='js/marked.min.js') }}"></script>
+    <style>
+        /* 为markdown内容添加样式 */
+        .markdown-content {
+            line-height: 1.6;
+        }
+        .markdown-content h1,
+        .markdown-content h2,
+        .markdown-content h3,
+        .markdown-content h4,
+        .markdown-content h5,
+        .markdown-content h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            font-weight: 600;
+        }
+        .markdown-content h1 { font-size: 1.8em; }
+        .markdown-content h2 { font-size: 1.5em; }
+        .markdown-content h3 { font-size: 1.3em; }
+        .markdown-content p { margin-bottom: 1em; }
+        .markdown-content ul,
+        .markdown-content ol {
+            margin-bottom: 1em;
+            padding-left: 1.5em;
+        }
+        .markdown-content li { margin-bottom: 0.5em; }
+        .markdown-content code {
+            background-color: #f3f4f6;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .markdown-content pre {
+            background-color: #f3f4f6;
+            padding: 1em;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 1em;
+        }
+        .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .markdown-content blockquote {
+            border-left: 4px solid #e5e7eb;
+            padding-left: 1em;
+            margin-left: 0;
+            color: #6b7280;
+            font-style: italic;
+        }
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1em;
+        }
+        .markdown-content th,
+        .markdown-content td {
+            border: 1px solid #e5e7eb;
+            padding: 0.5em;
+            text-align: left;
+        }
+        .markdown-content th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+    </style>
+    
+    <script>
+        // 监听登录请求，保存刷新令牌
+        document.addEventListener('DOMContentLoaded', function() {
+            // 如果当前在登录页面，监听登录表单提交
+            const loginForm = document.querySelector('form[action="/login"]');
+            if (loginForm) {
+                loginForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
+                    
+                    try {
+                        const response = await fetch('/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ username, password })
+                        });
+                        
+                        const data = await response.json();
+                        if (response.ok) {
+                            // 保存访问令牌和刷新令牌
+                            localStorage.setItem('access_token', data.access_token);
+                            localStorage.setItem('refresh_token', data.refresh_token);
+                            window.location.href = '/';
+                        } else {
+                            alert(data.error || '登录失败');
+                        }
+                    } catch (error) {
+                        alert('登录请求失败');
+                    }
+                });
+            }
+        });
+    </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1e40af', // 企业主色调
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white shadow-md fixed w-full top-0 z-30">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <!-- 品牌标志 -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-primary text-white p-2 rounded-lg">
+                        <i class="fa fa-building text-xl"></i>
+                    </div>
+                    <h1 class="text-xl font-bold text-primary hidden md:block">{{ site_title }}</h1>
+                </div>
+                
+                <!-- 用户信息 -->
+                <div class="flex items-center space-x-4">
+                    <!-- 用户信息 -->
+                    <div class="relative group">
+                        <button id="user-menu-button" class="flex items-center space-x-2 focus:outline-none">
+                            <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-500">
+                                <i class="fa fa-user"></i>
+                            </div>
+                            <span id="username-display" class="hidden md:inline font-medium">用户</span>
+                            <i class="fa fa-chevron-down text-xs text-gray-500"></i>
+                        </button>
+                        <div id="user-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden">
+                            <a href="#" id="logout-button" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fa fa-sign-out mr-2"></i>退出登录
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+
+
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- 侧边栏导航 -->
+        <aside class="w-64 bg-white shadow-lg fixed h-full z-20 left-0 top-16 transform transition-transform duration-300 md:translate-x-0 -translate-x-full" id="sidebar">
+            <nav class="py-4">
+                <ul>
+                    <li>
+                        <a href="#dashboard" class="flex items-center px-4 py-3 text-sm sidebar-active">
+                            <i class="fa fa-calendar-check-o w-6 text-center"></i>
+                            <span class="ml-3">事务预约</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#environment" class="flex items-center px-4 py-3 text-sm text-gray-600 hover:bg-gray-50">
+                            <i class="fa fa-leaf w-6 text-center"></i>
+                            <span class="ml-3">环境监测</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#notes" class="flex items-center px-4 py-3 text-sm text-gray-600 hover:bg-gray-50">
+                            <i class="fa fa-file-text-o w-6 text-center"></i>
+                            <span class="ml-3">树状笔记</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/api-docs" class="flex items-center px-4 py-3 text-sm text-gray-600 hover:bg-gray-50">
+                            <i class="fa fa-book w-6 text-center"></i>
+                            <span class="ml-3">API文档</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- 主要内容区域 -->
+        <main class="flex-1 overflow-y-auto ml-0 md:ml-64 pt-24 pb-16" id="main-content">
+            <div class="container mx-auto px-4">
+                <!-- 初始空内容 -->
+                <div id="initial-content" class="hidden h-64">
+                </div>
+                
+                <!-- 事务预约页面内容 -->
+                <div id="dashboard-content">
+                    <div class="mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">事务预约 - AI助手</h2>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <!-- 对话内容区域 -->
+                        <div class="p-6 h-96 overflow-y-auto">
+                            <div id="chat-container" class="space-y-4">
+                                <!-- AI助手初始消息 -->
+                                <div class="flex items-start">
+                                    <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                        <i class="fa fa-robot"></i>
+                                    </div>
+                                    <div class="bg-gray-100 rounded-lg p-3 max-w-[80%]">
+                                        <p class="text-gray-700">您好！我是AI助手，请问有什么可以帮助您的？</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 加载指示器 -->
+                            <div id="loading-indicator" class="flex items-start hidden">
+                                <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i class="fa fa-robot"></i>
+                                </div>
+                                <div class="bg-gray-100 rounded-lg p-3 max-w-[80%]">
+                                    <div class="flex space-x-1">
+                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 输入区域 -->
+                        <div class="p-6 border-t border-gray-200">
+                            <div class="flex space-x-2">
+                                <textarea 
+                                    id="prompt-input" 
+                                    class="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+                                    rows="2"
+                                    placeholder="请输入您的问题或需求..."
+                                ></textarea>
+                                <button 
+                                    id="send-prompt" 
+                                    class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary whitespace-nowrap"
+                                >
+                                    发送
+                                </button>
+                            </div>
+                            <p id="error-message" class="text-red-500 text-sm mt-2 hidden">错误信息将显示在这里</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 环境监测页面内容 -->
+                <div id="environment-content" class="hidden">
+                    <div class="mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">环境监测</h2>
+                    </div>
+                    
+                    <!-- 简洁的控制栏 -->
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center gap-3">
+                            <select id="time-range-select" class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                                <option value="1h">1小时</option>
+                                <option value="24h" selected>24小时</option>
+                                <option value="7d">7天</option>
+                            </select>
+                            <!-- 传感器类型多选标签容器 -->
+                            <div id="sensor-type-tags" class="flex flex-wrap gap-2 max-w-md">
+                                <!-- 动态添加传感器标签 -->
+                            </div>
+                        </div>
+                        <button id="refresh-data" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 text-sm flex items-center">
+                            <i class="fa fa-refresh mr-1"></i>刷新
+                        </button>
+                    </div>
+                    
+                    <!-- 事务预约式传感器数据窗口 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <!-- 实时数据显示区域 - 优化为水平滚动布局，支持多个传感器 -->
+                        <div class="bg-gray-50">
+                            <div class="px-4 py-2 border-b border-gray-200">
+                                <h3 class="text-sm font-medium text-gray-700">实时数据</h3>
+                            </div>
+                            <div class="overflow-x-auto" style="scrollbar-width: thin; scrollbar-color: #e2e8f0 #f8fafc;">
+                                <div id="real-time-data" class="flex space-x-1 p-1 min-w-max">
+                                    <!-- 传感器卡片将动态生成 -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 数据加载状态 -->
+                        <div id="loading-indicator-data" class="hidden p-8 flex flex-col items-center justify-center">
+                            <i class="fa fa-circle-o-notch fa-spin text-primary text-2xl mb-3"></i>
+                            <p class="text-gray-600">加载中...</p>
+                        </div>
+                        
+                        <!-- 错误消息 -->
+                        <div id="data-error-message" class="hidden p-6 bg-red-50 text-red-600 text-center">
+                            <i class="fa fa-exclamation-circle mr-2"></i><span></span>
+                        </div>
+                        
+                        <!-- 图表显示区域 -->
+                        <div class="p-4">
+                            <div class="h-64">
+                                <canvas id="combined-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 树状笔记页面内容 -->
+                <div id="notes-content" class="hidden">
+                    <div class="mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">树状笔记</h2>
+                    </div>
+                    
+                    <!-- 导航路径 -->
+                    <div id="breadcrumb" class="flex items-center mb-4 text-sm">
+                        <span id="current-path" class="text-primary">根目录</span>
+                    </div>
+                    
+                    <!-- 编辑/添加表单 -->
+                    <div id="notes-editor" class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-medium text-gray-700" id="editor-title">编辑笔记</h3>
+                            <div>
+                                <button id="save-note" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 mr-2">
+                                    <i class="fa fa-save mr-1"></i>保存
+                                </button>
+                                <button id="cancel-edit" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
+                                    <i class="fa fa-times mr-1"></i>取消
+                                </button>
+                            </div>
+                        </div>
+                        <input type="hidden" id="note-id" value="">
+                        <input type="hidden" id="note-pid" value="0">
+                        <div class="mb-4">
+                            <label for="note-title-input" class="block text-sm font-medium text-gray-700 mb-1">标题</label>
+                            <input type="text" id="note-title-input" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" placeholder="输入笔记标题">
+                        </div>
+                        <div>
+                            <label for="note-content-input" class="block text-sm font-medium text-gray-700 mb-1">内容</label>
+                            <textarea id="note-content-input" rows="6" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" placeholder="输入笔记内容"></textarea>
+                        </div>
+                        <div class="mt-4 flex items-center">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="note-is-public" class="sr-only peer">
+                                <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                <span class="ms-3 text-sm font-medium text-gray-700">公开笔记（其他用户可见）</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- 当前节点内容 -->
+                    <div id="current-node-content" class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 id="current-note-title" class="text-lg font-medium text-gray-800">根节点</h3>
+                            <div>
+                                <button id="add-child-node" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 mr-2">
+                                    <i class="fa fa-plus mr-1"></i>添加子节点
+                                </button>
+                                <button id="edit-current-node" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 mr-2">
+                                    <i class="fa fa-pencil mr-1"></i>编辑
+                                </button>
+                                <button id="delete-current-node" class="bg-red-100 text-red-600 px-4 py-2 rounded-lg hover:bg-red-200">
+                                    <i class="fa fa-trash mr-1"></i>删除
+                                </button>
+                            </div>
+                        </div>
+                        <div id="current-note-content-display" class="prose max-w-none text-gray-700">
+                            <!-- 根节点没有内容 -->
+                        </div>
+                        <div class="mt-2 flex items-center justify-between">
+                            <div id="current-note-author" class="text-sm text-gray-500">
+                                <!-- 作者信息 -->
+                            </div>
+                            <div id="current-note-is-public" class="text-sm px-2 py-1 rounded-full bg-gray-100 hidden">
+                                <span id="public-status-icon"><i class="fa fa-lock"></i></span>
+                                <span id="public-status-text" class="ml-1">私有</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 子节点列表 -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-medium text-gray-800 mb-4">子节点列表</h3>
+                        <div id="child-notes-list" class="space-y-2">
+                            <!-- 子节点列表将动态生成 -->
+                            <div id="no-child-notes" class="text-gray-500 text-center py-4">
+                                暂无子节点，点击上方"添加子节点"按钮创建
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 移动端菜单按钮 -->
+    <button id="menu-toggle" class="fixed bottom-6 right-6 w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center z-40 md:hidden">
+        <i class="fa fa-bars"></i>
+    </button>
+    
+    <!-- 事务预约功能已移至主内容区域 -->
+
+    <!-- JavaScript -->
+    <script>
+        // 封装带令牌刷新的API请求函数 - 全局定义
+        window.apiRequest = async function apiRequest(url, options = {}) {
+            const token = localStorage.getItem('access_token');
+            const refreshToken = localStorage.getItem('refresh_token');
+            
+            // 如果没有token，重定向到登录页面
+            if (!token || !refreshToken) {
+                window.location.href = '/login';
+                return Promise.reject(new Error('未登录'));
+            }
+            
+            // 主动检查令牌是否即将过期（提前5分钟刷新）
+            await checkAndRefreshTokenIfNeeded(token, refreshToken);
+            
+            // 获取可能已经更新的令牌
+            const currentToken = localStorage.getItem('access_token');
+            
+            // 添加Authorization头
+            options.headers = {
+                ...options.headers,
+                'Authorization': `Bearer ${currentToken}`,
+                'Content-Type': 'application/json'
+            };
+            
+            // 发送请求
+            let response = await fetch(url, options);
+            
+            // 如果是401错误且有刷新令牌，尝试刷新令牌（备用机制）
+            if (response.status === 401 && refreshToken) {
+                console.log('响应401，尝试刷新令牌...');
+                const refreshed = await refreshTokens(refreshToken);
+                if (refreshed) {
+                    // 更新请求头并重试
+                    options.headers.Authorization = `Bearer ${localStorage.getItem('access_token')}`;
+                    response = await fetch(url, options);
+                } else {
+                    // 刷新失败，已在refreshTokens函数中处理
+                    return Promise.reject(new Error('登录已过期，请重新登录'));
+                }
+            }
+            
+            return response;
+        };
+        
+        // 检查并在需要时刷新令牌
+        async function checkAndRefreshTokenIfNeeded(token, refreshToken) {
+            try {
+                // 解码JWT令牌获取过期时间
+                const tokenParts = token.split('.');
+                if (tokenParts.length !== 3) {
+                    console.error('无效的令牌格式');
+                    return;
+                }
+                
+                // 解码JWT payload
+                const payload = JSON.parse(atob(tokenParts[1]));
+                const exp = payload.exp;
+                
+                if (!exp) {
+                    console.error('令牌中没有过期时间');
+                    return;
+                }
+                
+                const now = Math.floor(Date.now() / 1000);
+                const timeUntilExpiry = exp - now;
+                const refreshThreshold = 300; // 5分钟 = 300秒
+                
+                // 如果令牌即将过期（5分钟内），则刷新
+                if (timeUntilExpiry > 0 && timeUntilExpiry < refreshThreshold) {
+                    console.log(`令牌将在${Math.ceil(timeUntilExpiry / 60)}分钟后过期，提前刷新...`);
+                    await refreshTokens(refreshToken);
+                }
+            } catch (error) {
+                console.error('检查令牌过期时间失败:', error);
+                // 解码失败时不执行刷新，让正常请求流程处理
+            }
+        }
+        
+        // 刷新令牌的辅助函数
+        async function refreshTokens(refreshToken) {
+            try {
+                const refreshResponse = await fetch('/refresh', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+                
+                if (refreshResponse.ok) {
+                    const refreshData = await refreshResponse.json();
+                    // 保存新的访问令牌
+                    localStorage.setItem('access_token', refreshData.access_token);
+                    console.log('令牌刷新成功');
+                    return true;
+                } else {
+                    console.error('令牌刷新失败:', await refreshResponse.json());
+                    // 刷新失败，清除令牌并跳转到登录
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    window.location.href = '/login';
+                    return false;
+                }
+            } catch (error) {
+                console.error('刷新令牌请求失败:', error);
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                window.location.href = '/login';
+                return false;
+            }
+        }
+        
+        // 检查用户是否已登录
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查是否有token
+            const token = localStorage.getItem('access_token');
+            const refreshToken = localStorage.getItem('refresh_token');
+            
+            if (!token || !refreshToken) {
+                // 如果没有token，重定向到登录页面
+                window.location.href = '/login';
+                return;
+            }
+            
+            // 验证token并获取用户信息
+            apiRequest('/profile')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('验证失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 更新用户名显示
+                    if (data.username) {
+                        document.getElementById('username-display').textContent = data.username;
+                    }
+                })
+                .catch(error => {
+                    console.error('验证失败:', error);
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    window.location.href = '/login';
+                });
+        });
+        
+        // 移动端侧边栏切换
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        let sidebarOpen = false;
+
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+            mainContent.classList.toggle('ml-64');
+            menuToggle.innerHTML = sidebarOpen ? '<i class="fa fa-bars"></i>' : '<i class="fa fa-times"></i>';
+            sidebarOpen = !sidebarOpen;
+        });
+
+        // 窗口大小变化时调整侧边栏状态
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('-translate-x-full');
+                mainContent.classList.add('ml-64');
+                sidebarOpen = false;
+            } else if (!sidebarOpen) {
+                sidebar.classList.add('-translate-x-full');
+                mainContent.classList.remove('ml-64');
+            }
+        });
+        
+        // 用户菜单切换
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userMenu = document.getElementById('user-menu');
+        
+        userMenuButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userMenu.classList.toggle('hidden');
+        });
+        
+        // 点击其他地方关闭用户菜单
+        document.addEventListener('click', function() {
+            if (!userMenu.classList.contains('hidden')) {
+                userMenu.classList.add('hidden');
+            }
+        });
+        
+        // 防止菜单内部点击事件冒泡
+        userMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        // 登出功能
+        const logoutButton = document.getElementById('logout-button');
+        logoutButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/login';
+        });
+        
+        // 页面导航功能
+        const environmentLink = document.querySelector('a[href="#environment"]');
+        const appointmentLink = document.querySelector('a[href="#dashboard"]');
+        const notesLink = document.querySelector('a[href="#notes"]');
+        const initialContent = document.getElementById('initial-content');
+        const environmentContent = document.getElementById('environment-content');
+        const dashboardContent = document.getElementById('dashboard-content');
+        const notesContent = document.getElementById('notes-content');
+        
+        // 页面加载时默认显示事务预约内容
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('initial-content').style.display = 'none';
+            document.getElementById('environment-content').style.display = 'none';
+            document.getElementById('dashboard-content').style.display = 'flex';
+            document.getElementById('notes-content').style.display = 'none';
+        });
+        
+        // 显示环境监测内容
+        function showEnvironmentContent() {
+            document.getElementById('initial-content').style.display = 'none';
+            document.getElementById('dashboard-content').style.display = 'none';
+            document.getElementById('environment-content').style.display = 'block';
+            document.getElementById('notes-content').style.display = 'none';
+            
+            // 初始化图表（仅当未初始化时）
+            if (!window.environmentChartsInitialized) {
+                initializeCharts();
+                window.environmentChartsInitialized = true;
+            }
+            
+            // 加载传感器数据
+            loadSensorData();
+        }
+        
+        // 环境监测页面切换
+        environmentLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            // 更新侧边栏活动状态
+            document.querySelectorAll('aside a').forEach(link => {
+                link.classList.remove('sidebar-active');
+                link.classList.add('text-gray-600', 'hover:bg-gray-50');
+            });
+            this.classList.add('sidebar-active');
+            this.classList.remove('text-gray-600', 'hover:bg-gray-50');
+            
+            // 调用函数显示环境监测内容
+            showEnvironmentContent();
+        });
+        
+        // 事务预约功能
+        const sendPrompt = document.getElementById('send-prompt');
+        const promptInput = document.getElementById('prompt-input');
+        const chatContainer = document.getElementById('chat-container');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const errorMessage = document.getElementById('error-message');
+        
+        // 点击事务预约链接
+        appointmentLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            // 更新侧边栏活动状态
+            document.querySelectorAll('aside a').forEach(link => {
+                link.classList.remove('sidebar-active');
+                link.classList.add('text-gray-600', 'hover:bg-gray-50');
+            });
+            this.classList.add('sidebar-active');
+            this.classList.remove('text-gray-600', 'hover:bg-gray-50');
+        });
+        
+        // 树状笔记模块将通过HTML中的script标签引入
+        
+        // 点击树状笔记链接
+        notesLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            // 更新侧边栏活动状态
+            document.querySelectorAll('aside a').forEach(link => {
+                link.classList.remove('sidebar-active');
+                link.classList.add('text-gray-600', 'hover:bg-gray-50');
+            });
+            this.classList.add('sidebar-active');
+            this.classList.remove('text-gray-600', 'hover:bg-gray-50');
+            
+            // 显示树状笔记内容
+            showNotesContent();
+        });
+        
+        // 加载事务预约相关的JavaScript文件
+        // 注：事务预约功能已移至appointment.js文件中
+        
+        // 设置页面初始加载时显示初始内容
+    window.addEventListener('DOMContentLoaded', function() {
+        // 检查URL hash以确定初始显示内容
+        if (window.location.hash === '#environment') {
+            // 更新侧边栏活动状态
+            const environmentLink = document.querySelector('a[href="#environment"]');
+            document.querySelectorAll('aside a').forEach(link => {
+                link.classList.remove('sidebar-active');
+                link.classList.add('text-gray-600', 'hover:bg-gray-50');
+            });
+            environmentLink.classList.add('sidebar-active');
+            environmentLink.classList.remove('text-gray-600', 'hover:bg-gray-50');
+            
+            // 调用函数显示环境监测内容
+            showEnvironmentContent();
+        } else {
+            // 默认显示初始内容
+            document.getElementById('environment-content').classList.add('hidden');
+            document.getElementById('initial-content').classList.remove('hidden');
+            
+            // 初始设置活动菜单项
+            const dashboardLink = document.querySelector('a[href="#dashboard"]');
+            dashboardLink.classList.add('sidebar-active');
+            dashboardLink.classList.remove('text-gray-600', 'hover:bg-gray-50');
+        }
+    });
+    </script>
+    <script src="{{ url_for('static', filename='js/appointment.js') }}"></script>
+</body>
+</html>

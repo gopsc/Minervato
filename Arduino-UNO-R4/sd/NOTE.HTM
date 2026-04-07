@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino Mozart API 文档</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #3498db;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+        }
+        h3 {
+            color: #2980b9;
+            margin-top: 20px;
+        }
+        .endpoint {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 3px solid #3498db;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .method.delete {
+            background-color: #e74c3c;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f1f1f1;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        pre {
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .description {
+            margin-bottom: 10px;
+        }
+        .param {
+            margin-left: 20px;
+            margin-bottom: 5px;
+        }
+        .param strong {
+            color: #2980b9;
+        }
+        .response-example {
+            background-color: #e8f4f8;
+            border-left: 3px solid #00bcd4;
+        }
+        .tool-link {
+            display: block;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .tool-link a {
+            display: inline-block;
+            background-color: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .tool-link a:hover {
+            background-color: #229954;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Arduino Mozart API 文档</h1>
+        
+
+        
+        <h2>文件操作 API</h2>
+        
+        <div class="endpoint">
+            <h3><span class="method">POST</span>/api/create</h3>
+            <div class="description">创建空白文件或覆盖现有文件为空白</div>
+            <pre><code>{"filename": "[filename]"}</code></pre>
+            <div class="param"><strong>filename</strong>: 要创建的文件名（必填）</div>
+        </div>
+        
+        <div class="endpoint">
+            <h3><span class="method">POST</span>/api/append</h3>
+            <div class="description">在文件末尾追加内容</div>
+            <pre><code>{"filename": "[filename]", "content": "[content]"}</code></pre>
+            <div class="param"><strong>filename</strong>: 目标文件名（必填）</div>
+            <div class="param"><strong>content</strong>: 要追加的内容（必填）</div>
+        </div>
+        
+        <div class="endpoint">
+            <h3><span class="method">POST</span>/api/upload</h3>
+            <div class="description">保存或覆盖整个文件内容（适用于较小文件）</div>
+            <pre><code>{"filename": "[filename]", "content": "[content]"}</code></pre>
+            <div class="param"><strong>filename</strong>: 目标文件名（必填）</div>
+            <div class="param"><strong>content</strong>: 文件内容（必填）</div>
+        </div>
+        
+        <div class="endpoint">
+            <h3><span class="method delete">DELETE</span>/api/remove</h3>
+            <div class="description">删除指定文件</div>
+            <pre><code>{"filename": "[filename]"}</code></pre>
+            <div class="param"><strong>filename</strong>: 要删除的文件名（必填）</div>
+        </div>
+        
+        <h2>传感器与命令 API</h2>
+        
+        <div class="endpoint">
+            <h3><span class="method">POST</span>/api/show</h3>
+            <div class="description">展示所有可用的命令功能</div>
+            <div class="description">无需参数</div>
+        </div>
+        
+        <div class="endpoint">
+            <h3><span class="method">POST</span>/api/sensor</h3>
+            <div class="description">执行传感器命令</div>
+            <pre><code>{"cmd": "[command]"}</code></pre>
+            <div class="param"><strong>cmd</strong>: 要执行的命令，如 MPU6050、BME280 等（必填）</div>
+        </div>
+        
+        <div class="endpoint">
+            <h3><span class="method">POST</span>/api/sensors</h3>
+            <div class="description">执行存储在SD卡上的脚本</div>
+            <pre><code>{"path": "[script_path]"}</code></pre>
+            <div class="param"><strong>path</strong>: SD卡上的脚本文件路径（必填）</div>
+        </div>
+        
+        <h2>GET 请求</h2>
+        <div class="endpoint">
+            <div class="description">直接访问文件或目录：</div>
+            <pre><code>GET /[filename] 或 GET /[directory]</code></pre>
+            <div class="description">- 文件会直接返回其内容</div>
+            <div class="description">- 目录会返回其内容列表</div>
+        </div>
+        
+        <h2>使用示例</h2>
+        <div class="endpoint">
+            <h3>创建文件并写入内容（分段）</h3>
+            <pre><code>// 步骤1：创建空白文件
+POST /api/create
+{"filename": "example.txt"}
+
+// 步骤2：追加内容
+POST /api/append
+{"filename": "example.txt", "content": "第一段内容\n"}
+
+// 步骤3：继续追加内容
+POST /api/append
+{"filename": "example.txt", "content": "第二段内容"}</code></pre>
+        </div>
+        
+        <div class="endpoint">
+            <h3>获取状态信息</h3>
+            <pre><code>POST /api/show
+{}</code></pre>
+            <p>说明：获取系统状态信息。不需要任何参数，直接返回状态消息。</p>
+        </div>
+        
+        <div class="endpoint">
+            <h3>创建空白文件</h3>
+            <pre><code>POST /api/create
+{"filename": "newfile.txt"}</code></pre>
+            <p>说明：创建或覆盖为空白文件。如果文件已存在，会先删除再创建。</p>
+        </div>
+        
+        <div class="endpoint">
+            <h3>追加文件内容</h3>
+            <pre><code>POST /api/append
+{"filename": "file.txt", "content": "要追加的内容"}</code></pre>
+            <p>说明：在现有文件末尾追加内容。如果文件不存在，会自动创建。</p>
+        </div>
+        
+        <div class="endpoint">
+            <h3>读取传感器数据</h3>
+            <pre><code>POST /api/sensor
+{"cmd": "MPU6050"}</code></pre>
+            <p>说明：发送传感器命令并获取数据。cmd参数指定要执行的传感器命令。</p>
+        </div>
+        
+        <div class="endpoint">
+            <h3>列出文件夹内容</h3>
+            <pre><code>POST /api/list
+{"path": ""}</code></pre>
+            <p>说明：列出指定路径下的所有文件和目录。返回JSON数组，每个元素包含name(文件名)、isDirectory(是否为目录)和可选的size(文件大小)字段。</p>
+        </div>
+        
+        <div class="endpoint">
+            <h3>上传/保存文件</h3>
+            <pre><code>POST /api/upload
+{"filename": "test.txt", "content": "文件内容"}</code></pre>
+            <p>说明：保存或覆盖文件。如果文件已存在，会先删除再创建。返回保存状态和写入字节数。</p>
+        </div>
+        
+        <div class="endpoint">
+            <h3>通过脚本获取传感器数据</h3>
+            <pre><code>POST /api/sensors
+{"path": "script.js"}</code></pre>
+            <p>说明：执行指定路径的JavaScript脚本获取传感器数据。需要SD卡和JS解释器支持。</p>
+        </div>
+    </div>
+</body>
+</html>

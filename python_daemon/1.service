@@ -1,0 +1,19 @@
+[Unit]
+Description=Mozart IoT Python Daemon
+After=network.target
+Wants=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/root/mozart-iot/python_daemon
+ExecStart=bash /root/mozart-iot/python_daemon/_run.sh
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=mozart-python-daemon
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

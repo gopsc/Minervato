@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API文档 - 莫扎特</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 配置Tailwind颜色 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#1F2937',
+                        light: '#F9FAFB',
+                        danger: '#EF4444',
+                        info: '#3B82F6',
+                        warning: '#F59E0B',
+                        success: '#10B981'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .api-card {
+                @apply bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg;
+            }
+            .api-header {
+                @apply px-6 py-4 border-b border-gray-200 flex justify-between items-center cursor-pointer;
+            }
+            .api-method {
+                @apply px-3 py-1 rounded text-sm font-medium;
+            }
+            .api-method-get {
+                @apply bg-blue-100 text-blue-800;
+            }
+            .api-method-post {
+                @apply bg-green-100 text-green-800;
+            }
+            .api-method-put {
+                @apply bg-yellow-100 text-yellow-800;
+            }
+            .api-method-delete {
+                @apply bg-red-100 text-red-800;
+            }
+            .api-body {
+                @apply px-6 py-4 border-t border-gray-200;
+            }
+            .api-path {
+                @apply font-mono text-lg text-primary;
+            }
+            .parameter-table {
+                @apply min-w-full divide-y divide-gray-200 my-4;
+            }
+            .parameter-table th {
+                @apply px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+            }
+            .parameter-table td {
+                @apply px-6 py-4 whitespace-nowrap text-sm text-gray-500;
+            }
+            .parameter-table tr {
+                @apply divide-y divide-gray-200;
+            }
+            .code-block {
+                @apply bg-gray-900 text-gray-100 p-4 rounded-md overflow-x-auto my-4 font-mono text-sm;
+            }
+            .badge {
+                @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+            }
+            .badge-required {
+                @apply bg-red-100 text-red-800;
+            }
+            .badge-optional {
+                @apply bg-gray-100 text-gray-800;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-server text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-gray-900">莫扎特 API文档</h1>
+            </div>
+            <nav class="hidden md:flex space-x-8">
+                <a href="/" class="text-gray-600 hover:text-primary transition-colors">首页</a>
+                <a href="#auth" class="text-gray-600 hover:text-primary transition-colors">认证API</a>
+                <a href="#notes" class="text-gray-600 hover:text-primary transition-colors">笔记API</a>
+                <a href="#deepseek" class="text-gray-600 hover:text-primary transition-colors">AI服务API</a>
+                <a href="#sensors" class="text-gray-600 hover:text-primary transition-colors">传感器API</a>
+            </nav>
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="text-gray-600 hover:text-primary focus:outline-none">
+                    <i class="fa fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200">
+            <div class="px-4 py-2 space-y-3">
+                <a href="/" class="block text-gray-600 hover:text-primary transition-colors py-2">首页</a>
+                <a href="#auth" class="block text-gray-600 hover:text-primary transition-colors py-2">认证API</a>
+                <a href="#notes" class="block text-gray-600 hover:text-primary transition-colors py-2">笔记API</a>
+                <a href="#deepseek" class="block text-gray-600 hover:text-primary transition-colors py-2">AI服务API</a>
+                <a href="#sensors" class="block text-gray-600 hover:text-primary transition-colors py-2">传感器API</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- 页面介绍 -->
+        <section class="mb-12 bg-white p-8 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">API文档概览</h2>
+            <p class="text-gray-600 mb-6">
+                本文档提供了树状网络文件系统（Dendrachy Network File-System, dnfs）的所有API端点说明。
+                这些API允许您与系统进行交互，包括用户认证、笔记管理、AI服务和传感器数据操作。
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-4">
+                        <i class="fa fa-lock text-primary text-xl"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">认证API</h3>
+                    <p class="text-sm text-gray-600">用户注册、登录和令牌管理</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
+                        <i class="fa fa-file-text text-secondary text-xl"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">笔记API</h3>
+                    <p class="text-sm text-gray-600">笔记的创建、查询、更新和删除</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mb-4">
+                        <i class="fa fa-comment text-purple-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">AI服务API</h3>
+                    <p class="text-sm text-gray-600">DeepSeek大模型调用和文档生成</p>
+                </div>
+                <div class="bg-amber-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-center w-12 h-12 bg-amber-100 rounded-full mb-4">
+                        <i class="fa fa-tachometer text-amber-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">传感器API</h3>
+                    <p class="text-sm text-gray-600">传感器数据的接收和查询</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- API使用说明 -->
+        <section class="mb-12 bg-white p-8 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">API使用说明</h2>
+            <div class="space-y-4 text-gray-600">
+                <div class="flex items-start">
+                    <i class="fa fa-info-circle text-primary mt-1 mr-3"></i>
+                    <p>大部分API端点需要认证，需要在请求头中包含有效的JWT访问令牌：<code>Authorization: Bearer {access_token}</code></p>
+                </div>
+                <div class="flex items-start">
+                    <i class="fa fa-clock-o text-warning mt-1 mr-3"></i>
+                    <p>访问令牌有效期为1小时，过期后需要使用刷新令牌获取新的访问令牌。</p>
+                </div>
+                <div class="flex items-start">
+                    <i class="fa fa-code text-secondary mt-1 mr-3"></i>
+                    <p>所有API请求和响应使用JSON格式，除非特别说明。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 认证API -->
+        <section id="auth" class="mb-12">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                    <i class="fa fa-lock text-primary text-xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">认证API</h2>
+            </div>
+            <div class="space-y-6">
+                <!-- 用户注册 -->
+                <div class="api-card">
+                    <div class="api-header" onclick="toggleApiDetails('register')">
+                        <div class="flex items-center space-x-4">
+                            <span class="api-method api-method-post">POST</span>
+                            <span class="api-path">/register</span>
+                            <span class="text-gray-600">用户注册</span>
+                        </div>
+                        <i id="register-icon" class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                    </div>
+                    <div id="register-body" class="api-body hidden">
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">描述</h3>
+                            <p class="text-gray-600">创建新用户账户</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求参数</h3>
+                            <table class="parameter-table">
+                                <thead>
+                                    <tr>
+                                        <th>参数名</th>
+                                        <th>类型</th>
+                                        <th>是否必需</th>
+                                        <th>描述</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>username</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>用户名</td>
+                                    </tr>
+                                    <tr>
+                                        <td>password</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>密码</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求示例</h3>
+                            <div class="code-block">
+{"username": "admin", "password": "your_password"}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">响应示例</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">成功 (201 Created)</p>
+                                    <div class="code-block">
+{"message": "注册成功"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">失败 - 参数错误 (400 Bad Request)</p>
+                                    <div class="code-block">
+{"error": "用户名和密码不能为空"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">失败 - 用户已存在 (400 Bad Request)</p>
+                                    <div class="code-block">
+{"error": "用户名已存在"}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 用户登录 -->
+                <div class="api-card">
+                    <div class="api-header" onclick="toggleApiDetails('login')">
+                        <div class="flex items-center space-x-4">
+                            <span class="api-method api-method-post">POST</span>
+                            <span class="api-path">/login</span>
+                            <span class="text-gray-600">用户登录</span>
+                        </div>
+                        <i id="login-icon" class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                    </div>
+                    <div id="login-body" class="api-body hidden">
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">描述</h3>
+                            <p class="text-gray-600">用户登录并获取访问令牌和刷新令牌</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求参数</h3>
+                            <table class="parameter-table">
+                                <thead>
+                                    <tr>
+                                        <th>参数名</th>
+                                        <th>类型</th>
+                                        <th>是否必需</th>
+                                        <th>描述</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>username</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>用户名</td>
+                                    </tr>
+                                    <tr>
+                                        <td>password</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>密码</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求示例</h3>
+                            <div class="code-block">
+{"username": "admin", "password": "your_password"}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">响应示例</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">成功 (200 OK)</p>
+                                    <div class="code-block">
+{"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...", "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">失败 - 参数错误 (400 Bad Request)</p>
+                                    <div class="code-block">
+{"error": "用户名和密码不能为空"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">失败 - 认证失败 (401 Unauthorized)</p>
+                                    <div class="code-block">
+{"error": "用户名或密码错误"}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 获取当前用户信息 -->
+                <div class="api-card">
+                    <div class="api-header" onclick="toggleApiDetails('profile')">
+                        <div class="flex items-center space-x-4">
+                            <span class="api-method api-method-get">GET</span>
+                            <span class="api-path">/profile</span>
+                            <span class="text-gray-600">获取当前用户信息</span>
+                        </div>
+                        <i id="profile-icon" class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                    </div>
+                    <div id="profile-body" class="api-body hidden">
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">描述</h3>
+                            <p class="text-gray-600">获取当前登录用户的信息</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求头</h3>
+                            <div class="code-block">
+Authorization: Bearer {access_token}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">响应示例</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">成功 (200 OK)</p>
+                                    <div class="code-block">
+{"username": "admin"}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 刷新访问令牌 -->
+                <div class="api-card">
+                    <div class="api-header" onclick="toggleApiDetails('refresh')">
+                        <div class="flex items-center space-x-4">
+                            <span class="api-method api-method-post">POST</span>
+                            <span class="api-path">/refresh</span>
+                            <span class="text-gray-600">刷新访问令牌</span>
+                        </div>
+                        <i id="refresh-icon" class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                    </div>
+                    <div id="refresh-body" class="api-body hidden">
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">描述</h3>
+                            <p class="text-gray-600">使用刷新令牌获取新的访问令牌</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求参数</h3>
+                            <table class="parameter-table">
+                                <thead>
+                                    <tr>
+                                        <th>参数名</th>
+                                        <th>类型</th>
+                                        <th>是否必需</th>
+                                        <th>描述</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>refresh_token</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>刷新令牌</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求示例</h3>
+                            <div class="code-block">
+{"refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">响应示例</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">成功 (200 OK)</p>
+                                    <div class="code-block">
+{"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">失败 - 参数错误 (400 Bad Request)</p>
+                                    <div class="code-block">
+{"error": "刷新令牌不能为空"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">失败 - 令牌无效 (401 Unauthorized)</p>
+                                    <div class="code-block">
+{"error": "无效的刷新令牌"}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 笔记API -->
+        <section id="notes" class="mb-12">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-4">
+                    <i class="fa fa-file-text text-secondary text-xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">笔记API</h2>
+            </div>
+            <div class="space-y-6">
+                <!-- 添加笔记 -->
+                <div class="api-card">
+                    <div class="api-header" onclick="toggleApiDetails('add_note')">
+                        <div class="flex items-center space-x-4">
+                            <span class="api-method api-method-post">POST</span>
+                            <span class="api-path">/add_note</span>
+                            <span class="text-gray-600">添加笔记</span>
+                        </div>
+                        <i id="add_note-icon" class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                    </div>
+                    <div id="add_note-body" class="api-body hidden">
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">描述</h3>
+                            <p class="text-gray-600">添加一条新的笔记</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求头</h3>
+                            <div class="code-block">
+Authorization: Bearer {access_token}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求参数</h3>
+                            <table class="parameter-table">
+                                <thead>
+                                    <tr>
+                                        <th>参数名</th>
+                                        <th>类型</th>
+                                        <th>是否必需</th>
+                                        <th>描述</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>pid</td>
+                                        <td>integer</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>父笔记ID，根笔记为0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>title</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>笔记标题</td>
+                                    </tr>
+                                    <tr>
+                                        <td>content</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>笔记内容</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求示例</h3>
+                            <div class="code-block">
+{"pid": 0, "title": "测试笔记", "content": "这是一条测试笔记的内容"}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">响应示例</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">成功 (200 OK)</p>
+                                    <div class="code-block">
+{"message": "Note added successfully"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">失败 - 参数错误 (400 Bad Request)</p>
+                                    <div class="code-block">
+{"error": "Pid, title and content are required"}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 获取笔记 -->
+                <div class="api-card">
+                    <div class="api-header" onclick="toggleApiDetails('get_notes')">
+                        <div class="flex items-center space-x-4">
+                            <span class="api-method api-method-post">POST</span>
+                            <span class="api-path">/get_notes</span>
+                            <span class="text-gray-600">获取笔记</span>
+                        </div>
+                        <i id="get_notes-icon" class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                    </div>
+                    <div id="get_notes-body" class="api-body hidden">
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">描述</h3>
+                            <p class="text-gray-600">获取指定父笔记ID的所有子笔记</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求头</h3>
+                            <div class="code-block">
+Authorization: Bearer {access_token}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求参数</h3>
+                            <table class="parameter-table">
+                                <thead>
+                                    <tr>
+                                        <th>参数名</th>
+                                        <th>类型</th>
+                                        <th>是否必需</th>
+                                        <th>描述</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>pid</td>
+                                        <td>integer</td>
+                                        <td><span class="badge badge-optional">可选</span></td>
+                                        <td>父笔记ID，默认值为0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求示例</h3>
+                            <div class="code-block">
+{"pid": 0}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">响应示例</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">成功 (200 OK)</p>
+                                    <div class="code-block">
+[{"id": 1, "pid": 0, "title": "测试笔记", "content": "这是一条测试笔记的内容"}, {"id": 2, "pid": 0, "title": "另一条笔记", "content": "内容"}]
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 删除笔记 -->
+                <div class="api-card">
+                    <div class="api-header" onclick="toggleApiDetails('delete_note')">
+                        <div class="flex items-center space-x-4">
+                            <span class="api-method api-method-post">POST</span>
+                            <span class="api-path">/delete_note</span>
+                            <span class="text-gray-600">删除笔记</span>
+                        </div>
+                        <i id="delete_note-icon" class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                    </div>
+                    <div id="delete_note-body" class="api-body hidden">
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">描述</h3>
+                            <p class="text-gray-600">删除指定ID的笔记</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求头</h3>
+                            <div class="code-block">
+Authorization: Bearer {access_token}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求参数</h3>
+                            <table class="parameter-table">
+                                <thead>
+                                    <tr>
+                                        <th>参数名</th>
+                                        <th>类型</th>
+                                        <th>是否必需</th>
+                                        <th>描述</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>id</td>
+                                        <td>integer</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>笔记ID</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求示例</h3>
+                            <div class="code-block">
+{"id": 1}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">响应示例</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">成功 (200 OK)</p>
+                                    <div class="code-block">
+{"message": "Note deleted successfully"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">失败 - 参数错误 (400 Bad Request)</p>
+                                    <div class="code-block">
+{"error": "Note ID is required"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">失败 - 笔记不存在 (404 Not Found)</p>
+                                    <div class="code-block">
+{"error": "Note not found"}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 更新笔记 -->
+                <div class="api-card">
+                    <div class="api-header" onclick="toggleApiDetails('update_note')">
+                        <div class="flex items-center space-x-4">
+                            <span class="api-method api-method-post">POST</span>
+                            <span class="api-path">/update_note</span>
+                            <span class="text-gray-600">更新笔记</span>
+                        </div>
+                        <i id="update_note-icon" class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                    </div>
+                    <div id="update_note-body" class="api-body hidden">
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">描述</h3>
+                            <p class="text-gray-600">更新指定ID笔记的内容</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求头</h3>
+                            <div class="code-block">
+Authorization: Bearer {access_token}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求参数</h3>
+                            <table class="parameter-table">
+                                <thead>
+                                    <tr>
+                                        <th>参数名</th>
+                                        <th>类型</th>
+                                        <th>是否必需</th>
+                                        <th>描述</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>id</td>
+                                        <td>integer</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>笔记ID</td>
+                                    </tr>
+                                    <tr>
+                                        <td>pid</td>
+                                        <td>integer</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>父笔记ID</td>
+                                    </tr>
+                                    <tr>
+                                        <td>title</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>笔记标题</td>
+                                    </tr>
+                                    <tr>
+                                        <td>content</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>笔记内容</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求示例</h3>
+                            <div class="code-block">
+{"id": 1, "pid": 0, "title": "更新后的笔记标题", "content": "更新后的笔记内容"}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">响应示例</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">成功 (200 OK)</p>
+                                    <div class="code-block">
+{"message": "Your change is up-to-date."}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">失败 - 参数错误 (400 Bad Request)</p>
+                                    <div class="code-block">
+{"error": "Invalid param"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">失败 - 笔记不存在 (404 Not Found)</p>
+                                    <div class="code-block">
+{"error": "Note not found"}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI服务API -->
+        <section id="deepseek" class="mb-12">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+                    <i class="fa fa-comment text-purple-600 text-xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">AI服务API</h2>
+            </div>
+            <div class="space-y-6">
+                <!-- DeepSeek API调用 -->
+                <div class="api-card">
+                    <div class="api-header" onclick="toggleApiDetails('deepseek')">
+                        <div class="flex items-center space-x-4">
+                            <span class="api-method api-method-post">POST</span>
+                            <span class="api-path">/api/deepseek</span>
+                            <span class="text-gray-600">调用DeepSeek大模型</span>
+                        </div>
+                        <i id="deepseek-icon" class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                    </div>
+                    <div id="deepseek-body" class="api-body hidden">
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">描述</h3>
+                            <p class="text-gray-600">调用DeepSeek大模型并返回流式响应，支持文档生成工具调用</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求头</h3>
+                            <div class="code-block">
+Authorization: Bearer {access_token}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求参数</h3>
+                            <table class="parameter-table">
+                                <thead>
+                                    <tr>
+                                        <th>参数名</th>
+                                        <th>类型</th>
+                                        <th>是否必需</th>
+                                        <th>描述</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>prompt</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>对话提示词</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求示例</h3>
+                            <div class="code-block">
+{"prompt": "请帮我写一份项目计划书"}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">响应格式</h3>
+                            <p class="text-gray-600 mb-2">流式响应 (text/event-stream)，每行一个JSON对象：</p>
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">文本响应</p>
+                                    <div class="code-block">
+{"content": "生成的文本内容..."}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">文档生成通知</p>
+                                    <div class="code-block">
+{"action_required": "download_document", "document_id": "abc123", "message": "文档已生成，请点击下载按钮获取"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">错误响应</p>
+                                    <div class="code-block">
+{"error": "错误信息"}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 下载文档 -->
+                <div class="api-card">
+                    <div class="api-header" onclick="toggleApiDetails('download-document')">
+                        <div class="flex items-center space-x-4">
+                            <span class="api-method api-method-get">GET</span>
+                            <span class="api-path">/api/download-document/&lt;doc_id&gt;</span>
+                            <span class="text-gray-600">下载生成的文档</span>
+                        </div>
+                        <i id="download-document-icon" class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                    </div>
+                    <div id="download-document-body" class="api-body hidden">
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">描述</h3>
+                            <p class="text-gray-600">下载由DeepSeek生成的文档</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">路径参数</h3>
+                            <table class="parameter-table">
+                                <thead>
+                                    <tr>
+                                        <th>参数名</th>
+                                        <th>类型</th>
+                                        <th>是否必需</th>
+                                        <th>描述</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>doc_id</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>文档ID（从/api/deepseek响应中获取）</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">响应</h3>
+                            <p class="text-gray-600">返回文本文件 (text/plain)，文件名中包含时间戳</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 生成文档 -->
+                <div class="api-card">
+                    <div class="api-header" onclick="toggleApiDetails('generate-document')">
+                        <div class="flex items-center space-x-4">
+                            <span class="api-method api-method-post">POST</span>
+                            <span class="api-path">/api/generate-document</span>
+                            <span class="text-gray-600">生成文档</span>
+                        </div>
+                        <i id="generate-document-icon" class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                    </div>
+                    <div id="generate-document-body" class="api-body hidden">
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">描述</h3>
+                            <p class="text-gray-600">调用DeepSeek大模型生成结构化JSON文档并提供下载</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求头</h3>
+                            <div class="code-block">
+Authorization: Bearer {access_token}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求参数</h3>
+                            <table class="parameter-table">
+                                <thead>
+                                    <tr>
+                                        <th>参数名</th>
+                                        <th>类型</th>
+                                        <th>是否必需</th>
+                                        <th>描述</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>prompt</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>文档生成提示词</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求示例</h3>
+                            <div class="code-block">
+{"prompt": "请生成一份关于物联网安全的详细报告"}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">响应</h3>
+                            <p class="text-gray-600">成功时返回文本文件 (text/plain)，包含JSON格式的文档内容</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 传感器API -->
+        <section id="sensors" class="mb-12">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mr-4">
+                    <i class="fa fa-tachometer text-amber-600 text-xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">传感器API</h2>
+            </div>
+            <div class="space-y-6">
+                <!-- 接收传感器数据 -->
+                <div class="api-card">
+                    <div class="api-header" onclick="toggleApiDetails('receive-sensor-data')">
+                        <div class="flex items-center space-x-4">
+                            <span class="api-method api-method-post">POST</span>
+                            <span class="api-path">/api/sensor-data</span>
+                            <span class="text-gray-600">接收传感器数据</span>
+                        </div>
+                        <i id="receive-sensor-data-icon" class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                    </div>
+                    <div id="receive-sensor-data-body" class="api-body hidden">
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">描述</h3>
+                            <p class="text-gray-600">接收来自微控制器的传感器数据并保存到数据库</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求参数 - 单条数据格式</h3>
+                            <table class="parameter-table">
+                                <thead>
+                                    <tr>
+                                        <th>参数名</th>
+                                        <th>类型</th>
+                                        <th>是否必需</th>
+                                        <th>描述</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>device_id</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>设备标识符</td>
+                                    </tr>
+                                    <tr>
+                                        <td>sensor_type</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>传感器类型</td>
+                                    </tr>
+                                    <tr>
+                                        <td>value</td>
+                                        <td>number</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>传感器值</td>
+                                    </tr>
+                                    <tr>
+                                        <td>timestamp</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-optional">可选</span></td>
+                                        <td>时间戳 (YYYY-MM-DD HH:MM:SS)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求参数 - 批量数据格式</h3>
+                            <table class="parameter-table">
+                                <thead>
+                                    <tr>
+                                        <th>参数名</th>
+                                        <th>类型</th>
+                                        <th>是否必需</th>
+                                        <th>描述</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>device_id</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>设备标识符</td>
+                                    </tr>
+                                    <tr>
+                                        <td>data</td>
+                                        <td>array</td>
+                                        <td><span class="badge badge-required">必需</span></td>
+                                        <td>传感器数据数组，每个元素包含sensor_type、value和可选的timestamp</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求示例 - 单条数据</h3>
+                            <div class="code-block">
+{"device_id": "esp32_1", "sensor_type": "temperature", "value": 25.5, "timestamp": "2023-05-15 14:30:00"}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求示例 - 批量数据</h3>
+                            <div class="code-block">
+{"device_id": "esp32_1", "data": [{"sensor_type": "temperature", "value": 25.5}, {"sensor_type": "humidity", "value": 60.2}]}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">响应示例</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">成功 - 单条数据 (200 OK)</p>
+                                    <div class="code-block">
+{"message": "传感器数据保存成功"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">成功 - 批量数据 (200 OK)</p>
+                                    <div class="code-block">
+{"message": "成功保存 2 条传感器数据", "saved": 2}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">失败 - 参数错误 (400 Bad Request)</p>
+                                    <div class="code-block">
+{"error": "缺少device_id字段"}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 获取传感器数据 -->
+                <div class="api-card">
+                    <div class="api-header" onclick="toggleApiDetails('get-sensor-data')">
+                        <div class="flex items-center space-x-4">
+                            <span class="api-method api-method-get">GET</span>
+                            <span class="api-path">/api/sensor-data</span>
+                            <span class="text-gray-600">获取传感器数据</span>
+                        </div>
+                        <i id="get-sensor-data-icon" class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                    </div>
+                    <div id="get-sensor-data-body" class="api-body hidden">
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">描述</h3>
+                            <p class="text-gray-600">获取传感器数据，支持按设备、传感器类型、时间范围过滤</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求头</h3>
+                            <div class="code-block">
+Authorization: Bearer {access_token}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">查询参数</h3>
+                            <table class="parameter-table">
+                                <thead>
+                                    <tr>
+                                        <th>参数名</th>
+                                        <th>类型</th>
+                                        <th>是否必需</th>
+                                        <th>描述</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>device_id</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-optional">可选</span></td>
+                                        <td>设备标识符</td>
+                                    </tr>
+                                    <tr>
+                                        <td>sensor_type</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-optional">可选</span></td>
+                                        <td>传感器类型</td>
+                                    </tr>
+                                    <tr>
+                                        <td>start_time</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-optional">可选</span></td>
+                                        <td>开始时间 (ISO格式)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>end_time</td>
+                                        <td>string</td>
+                                        <td><span class="badge badge-optional">可选</span></td>
+                                        <td>结束时间 (ISO格式)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>limit</td>
+                                        <td>integer</td>
+                                        <td><span class="badge badge-optional">可选</span></td>
+                                        <td>返回数据条数限制，默认100</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">请求示例</h3>
+                            <div class="code-block">
+GET /api/sensor-data?device_id=esp32_1&sensor_type=temperature&start_time=2023-05-15T00:00:00Z&limit=50
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 mb-2">响应示例</h3>
+                            <div class="code-block">
+[{"id": 1, "device_id": "esp32_1", "sensor_type": "temperature", "value": 25.5, "timestamp": "2023-05-15T14:30:00+08:00"}, {"id": 2, "device_id": "esp32_1", "sensor_type": "temperature", "value": 26.0, "timestamp": "2023-05-15T14:40:00+08:00"}]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <i class="fa fa-server text-primary text-2xl"></i>
+                        <h2 class="text-xl font-bold">树状网络文件系统</h2>
+                    </div>
+                    <p class="text-gray-400 text-sm">Dendrachy Network File-System (dnfs)</p>
+                </div>
+                <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8">
+                    <a href="/" class="text-gray-400 hover:text-primary transition-colors">首页</a>
+                    <a href="#auth" class="text-gray-400 hover:text-primary transition-colors">认证API</a>
+                    <a href="#notes" class="text-gray-400 hover:text-primary transition-colors">笔记API</a>
+                    <a href="#deepseek" class="text-gray-400 hover:text-primary transition-colors">AI服务API</a>
+                    <a href="#sensors" class="text-gray-400 hover:text-primary transition-colors">传感器API</a>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
+                <p>© 2023 树状网络文件系统. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 切换API详情显示/隐藏
+        function toggleApiDetails(id) {
+            const body = document.getElementById(`${id}-body`);
+            const icon = document.getElementById(`${id}-icon`);
+            
+            if (body.classList.contains('hidden')) {
+                body.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                body.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+        
+        // 移动端菜单切换
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80, // 减去导航栏高度
+                        behavior: 'smooth'
+                    });
+                    
+                    // 关闭移动端菜单
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

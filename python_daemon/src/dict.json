@@ -1,0 +1,9 @@
+[
+    {"Humidity(%)": "湿度（%）"},
+    {"Pressure(hPa)": "气压"},
+    {"Temperature(*C)": "摄氏温度"},
+    {"TVOC(ppb)": "总挥发性有机化合物（ppb）"},
+    {"eCO2(ppm)": "环境二氧化碳浓度（ppm）"},
+    {"Temperature(degC)": "摄氏温度"},
+    {"Light(lx)": "光照强度（lx）"}
+]

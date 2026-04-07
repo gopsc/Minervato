@@ -1,0 +1,278 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+    .content-auto {
+        content-visibility: auto;
+    }
+    .sidebar-active {
+        @apply bg-primary/10 text-primary border-l-4 border-primary;
+    }
+    .card-hover {
+        @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+    }
+}
+
+/* 全局样式 */
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* 仪表板内容区域 */
+#dashboard-content {
+    min-height: calc(100vh - 4rem);
+    padding-bottom: 2rem;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#dashboard-content h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+/* 聊天容器样式 */
+#chat-container {
+    height: calc(100vh - 16rem);
+    max-height: 700px;
+    overflow-y: auto;
+    flex: 1;
+    margin-bottom: 20px;
+    padding-right: 10px;
+}
+
+#dashboard-content .flex {
+    margin-bottom: 15px;
+}
+
+#dashboard-content .input-group {
+    margin-top: auto;
+}
+
+#prompt-input {
+    width: 100%;
+    resize: none;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    #chat-container {
+        height: calc(100vh - 20rem);
+    }
+    .mobile-hidden {
+        display: none !important;
+    }
+    .mobile-sidebar {
+        @apply fixed inset-0 bg-white z-50 transform transition-transform duration-300 ease-in-out;
+        width: 280px;
+        left: -280px;
+    }
+    .mobile-sidebar.open {
+        transform: translateX(280px);
+    }
+    .mobile-overlay {
+        @apply fixed inset-0 bg-black bg-opacity-50 z-40 hidden;
+    }
+    .mobile-overlay.visible {
+        display: block;
+    }
+    #dashboard-content {
+        padding: 15px;
+    }
+    
+    #dashboard-content h3 {
+        font-size: 1.25rem;
+    }
+}
+
+/* 数据卡片样式 */
+.data-card {
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.data-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+}
+
+/* 图表容器样式 */
+.chart-container {
+    height: 300px;
+    position: relative;
+}
+
+/* 传感器标签样式 */
+.sensor-tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    background-color: #e5e7eb;
+    color: #374151;
+    font-size: 0.875rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sensor-tag.selected {
+    background-color: #3b82f6;
+    color: #ffffff;
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* 加载动画 */
+.loading-spinner {
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 3px solid #3b82f6;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 笔记编辑区域 */
+.note-editor {
+    min-height: 150px;
+    resize: vertical;
+}
+
+/* 笔记项目样式 */
+.note-item {
+    transition: all 0.2s ease;
+}
+
+.note-item:hover {
+    background-color: #f9fafb;
+}
+
+/* 传感器数据卡片样式 */
+.sensor-card {
+    @apply p-4 rounded-lg border shadow-sm transition-all hover:shadow-md;
+}
+
+.sensor-value {
+    @apply text-2xl font-bold;
+}
+
+.sensor-label {
+    @apply text-sm text-gray-500;
+}
+
+/* 图表容器样式 */
+.chart-container {
+    @apply w-full h-80 p-4 rounded-lg border shadow-sm;
+}
+
+/* 按钮加载状态 */
+.btn-loading {
+    @apply opacity-70 cursor-not-allowed;
+}
+
+/* 文本区域自动高度 */
+.auto-resize {
+    min-height: 120px;
+    resize: none;
+}
+
+/* 文档列表项样式 */
+.document-item {
+    @apply p-3 rounded border hover:border-blue-400 transition-colors;
+}
+
+/* 滚动条样式优化 */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* 树状笔记样式 */
+.tree-item {
+    @apply p-2 rounded hover:bg-gray-100 transition-colors;
+}
+
+.tree-item.active {
+    @apply bg-blue-50 text-blue-700 font-medium;
+}
+
+/* 动画效果 */
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* 加载指示器 */
+.loading-indicator {
+    @apply flex justify-center items-center space-x-2;
+}
+
+.loading-dot {
+    @apply w-2 h-2 rounded-full bg-blue-500 animate-pulse;
+}
+
+.loading-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.loading-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+/* 错误状态样式 */
+.error-text {
+    @apply text-red-500 text-sm;
+}
+
+.error-border {
+    @apply border-red-300;
+}

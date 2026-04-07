@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>传感器控制页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        h2 {
+            color: #3498db;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .list-container {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .list-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .list-item:hover {
+            background-color: #e8f4f8;
+        }
+        
+        .list-item.selected {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .response-section {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .response-item {
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+        }
+        
+        .response-key {
+            font-weight: bold;
+            color: #495057;
+            margin-right: 10px;
+        }
+        
+        .response-value {
+            color: #28a745;
+        }
+        
+        .error {
+            color: #dc3545;
+            margin-top: 10px;
+        }
+        
+        .loading {
+            color: #6c757d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>传感器控制</h1>
+        
+        <div class="section">
+            <h2>1. 设备列表</h2>
+            <div id="loading" class="loading">加载设备列表...</div>
+            <div id="deviceList" class="list-container" style="display: none;"></div>
+            <div id="listError" class="error" style="display: none;"></div>
+        </div>
+        
+        <div class="section">
+            <h2>2. 发送命令</h2>
+            <form id="commandForm">
+                <div class="form-group">
+                    <label for="stringInput">字符串字段：</label>
+                    <input type="text" id="stringInput" placeholder="请输入字符串">
+                </div>
+                <button type="submit" id="submitBtn" disabled>发送命令</button>
+            </form>
+        </div>
+        
+        <div class="section">
+            <h2>3. 响应结果</h2>
+            <div id="responseContainer" class="response-section" style="display: none;">
+                <h3>API响应：</h3>
+                <div id="responseContent"></div>
+            </div>
+            <div id="responseError" class="error" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量
+        let selectedDevice = null;
+        const devices = [];
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchDevices();
+            setupEventListeners();
+        });
+        
+        // 从/api/show_ext获取设备列表
+        async function fetchDevices() {
+            try {
+                const response = await fetch('/api/show_ext', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP错误! 状态: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                if (Array.isArray(data)) {
+                    devices.length = 0;
+                    devices.push(...data);
+                    renderDeviceList();
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('deviceList').style.display = 'block';
+                } else {
+                    throw new Error('返回的数据不是数组格式');
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('listError').textContent = `加载设备列表失败: ${error.message}`;
+                document.getElementById('listError').style.display = 'block';
+            }
+        }
+        
+        // 渲染设备列表
+        function renderDeviceList() {
+            const deviceList = document.getElementById('deviceList');
+            deviceList.innerHTML = '';
+            
+            devices.forEach(device => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.textContent = `${device.id} (Version: ${device.version})`;
+                div.addEventListener('click', () => selectDevice(device, div));
+                deviceList.appendChild(div);
+            });
+        }
+        
+        // 选择设备
+        function selectDevice(device, element) {
+            selectedDevice = device.id;
+            
+            // 更新选中状态
+            document.querySelectorAll('.list-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            
+            // 启用发送按钮
+            document.getElementById('submitBtn').disabled = false;
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            const form = document.getElementById('commandForm');
+            form.addEventListener('submit', handleSubmit);
+        }
+        
+        // 处理表单提交
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            if (!selectedDevice) {
+                alert('请先选择一个设备');
+                return;
+            }
+            
+            // 将设备ID从十六进制字符串转换为整数
+            const deviceAddr = parseInt(selectedDevice, 16);
+            
+            const stringInput = document.getElementById('stringInput').value.trim();
+            let requestData;
+            
+            if (!stringInput) {
+                // 字符串字段留空时，调用get命令，value为0
+                requestData = {
+                    addr: deviceAddr,
+                    cmd: 'get',
+                    value: 0
+                };
+            } else {
+                // 字符串字段不为空时，调用set命令，value为数字类型
+                const value = parseFloat(stringInput);
+                if (isNaN(value)) {
+                    alert('请输入有效的数字');
+                    return;
+                }
+                requestData = {
+                    addr: deviceAddr,
+                    cmd: 'set',
+                    value: value
+                };
+            }
+            
+            try {
+                // 发送请求到/api/extension
+                const response = await fetch('/api/extension', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP错误! 状态: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                displayResponse(data);
+            } catch (error) {
+                document.getElementById('responseError').textContent = `发送请求失败: ${error.message}`;
+                document.getElementById('responseError').style.display = 'block';
+                document.getElementById('responseContainer').style.display = 'none';
+            }
+        }
+        
+        // 显示响应结果
+        function displayResponse(data) {
+            const responseContainer = document.getElementById('responseContainer');
+            const responseContent = document.getElementById('responseContent');
+            const responseError = document.getElementById('responseError');
+            
+            // 清空之前的内容
+            responseContent.innerHTML = '';
+            responseError.style.display = 'none';
+            
+            // 检查是否是对象
+            if (typeof data === 'object' && data !== null) {
+                // 遍历对象的所有键值对
+                for (const [key, value] of Object.entries(data)) {
+                    const div = document.createElement('div');
+                    div.className = 'response-item';
+                    
+                    const keySpan = document.createElement('span');
+                    keySpan.className = 'response-key';
+                    keySpan.textContent = `${key}:`;
+                    
+                    const valueSpan = document.createElement('span');
+                    valueSpan.className = 'response-value';
+                    valueSpan.textContent = JSON.stringify(value);
+                    
+                    div.appendChild(keySpan);
+                    div.appendChild(valueSpan);
+                    responseContent.appendChild(div);
+                }
+            } else {
+                // 非对象类型，直接显示
+                const div = document.createElement('div');
+                div.className = 'response-item';
+                div.textContent = JSON.stringify(data);
+                responseContent.appendChild(div);
+            }
+            
+            // 显示响应容器
+            responseContainer.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

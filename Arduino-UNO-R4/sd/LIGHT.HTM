@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>传感器监控面板</title>
+    <link rel="stylesheet" href="CSS/INDEX.CSS">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uplot@1.6.26/dist/uPlot.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>传感器监控面板</h1>
+            <p class="subtitle">支持多种传感器数据采集与监控</p>
+        </header>
+        
+        <div class="controls">
+            <div class="command-input">
+                <label for="sensorCommand">传感器命令:</label>
+                <select id="sensorCommand" placeholder="下拉选择传感器命令">
+                    <option value="">-- 选择传感器命令 --</option>
+                </select>
+                <!-- <input type="text" id="sensorCommand" placeholder="例如: MPU6050" value="MPU6050"> -->
+                <button id="fetchData" type="button">获取传感器数据</button>
+            </div>
+            <div class="chart-controls">
+                <label for="dataFieldSelect">图表数据字段:</label>
+                <select id="dataFieldSelect">
+                    <option value="">-- 选择数据字段 --</option>
+                </select>
+            </div>
+            <div class="action-buttons">
+                <button id="autoRefresh" type="button">自动刷新: 关闭</button>
+                <button id="exportData" type="button">导出数据</button>
+                <button id="clearData" type="button">清除历史数据</button>
+            </div>
+        </div>
+        
+        <div class="status" id="status"><span class="pulse"></span>就绪，输入传感器命令后点击"获取传感器数据"开始</div>
+        
+        <div class="dashboard">
+            <div class="data-card">
+                <h3><i>📊</i> 实时数据</h3>
+                <div class="data-grid" id="sensorDataGrid">
+                    <div class="data-item">
+                        <span class="label">传感器命令</span>
+                        <span class="value" id="currentCommand">--</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="data-card">
+                <h3><i>⚙️</i> 系统状态</h3>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <span class="label">数据点数</span>
+                        <span class="value" id="dataPoints">0</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="label">最后更新</span>
+                        <span class="value" id="lastUpdate">--</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="label">自动刷新</span>
+                        <span class="value" id="autoRefreshStatus">关闭</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="label">可用字段</span>
+                        <span class="value" id="availableFields">0</span>
+                    </div>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="minValue">--</div>
+                        <div class="stat-label" id="minLabel">最小值</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="maxValue">--</div>
+                        <div class="stat-label" id="maxLabel">最大值</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="avgValue">--</div>
+                        <div class="stat-label" id="avgLabel">平均值</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chart-row">
+            <div class="data-card">
+                <h3><i>📈</i> 实时数据变化</h3>
+                <div class="chart-container">
+                    <div id="realtimeChart"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chart-row">
+            <div class="data-card">
+                <h3><i>📊</i> 历史数据记录</h3>
+                <div class="chart-container">
+                    <div id="historyChart"></div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>作者：qing</p>
+            <p>Email：1776177662@qq.com</p>
+        </footer>
+    </div>
+
+    <!-- 引入 uPlot 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/uplot@1.6.26/dist/uPlot.iife.min.js"></script>
+    <!-- 引入自定义JavaScript文件 -->
+    <script src="JS/LIGHT.JS"></script>
+</body>
+</html>
