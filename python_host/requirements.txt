@@ -1,7 +1,0 @@
-flask
-flask-cors
-flask_sqlalchemy
-waitress
-flask-jwt-extended
-requests
-pytz
